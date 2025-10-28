@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="primefaces">
+    <ui:composition template="/templates/page-template.xhtml">
+        <ui:define name="pageContent">
+            <p:panel header="Kalkulator Kredytowy" styleClass="custom-panel">
+                <p:messages id="msg" showDetail="true" />
+                <h:form >
+                    <h:panelGrid columns="2" cellpadding="10" styleClass="form-grid">
+                        
+                        <p:outputLabel for="input1" value="Kwota kredytu (zł): "/>
+                        <p:inputNumber id="input1" value="#{calcBB.kwota}" minValue="1" maxValue="1000000" decimalPlaces="2" 
+                                      placeholder="Wprowadź kwotę kredytu" styleClass="custom-input" />                      
+                        
+                        <p:outputLabel for="okres" value="Okres spłaty (lata): "/>
+                        <p:inputNumber id="okres" value="#{calcBB.okres}" minValue="1" maxValue="50" decimalPlaces="0" 
+                                      placeholder="Wprowadź okres spłaty" styleClass="custom-input" />
+                        
+                        <p:outputLabel for="procent" value="Roczna stopa procentowa (%): "/>
+                        <p:inputNumber id="procent" value="#{calcBB.procent}" minValue="0.01" maxValue="100" decimalPlaces="2" 
+                                      placeholder="Wprowadź stopę procentową" styleClass="custom-input" />
+                        
+                        <p:separator />
+                        <p:commandButton value="Oblicz całkowitą kwotę" action="#{calcBB.calc()}" update="msg" 
+                                        styleClass="custom-button" icon="pi pi-calculator" />
+                    </h:panelGrid>
+                    <p:separator />
+                    <p:commandLink value="Informacje o kalkulatorze kredytowym" action="#{calcBB.info()}" 
+                                  styleClass="info-link" icon="pi pi-info-circle" />
+                </h:form>
+            </p:panel>
+        </ui:define>
+
+    </ui:composition>
+</html>
