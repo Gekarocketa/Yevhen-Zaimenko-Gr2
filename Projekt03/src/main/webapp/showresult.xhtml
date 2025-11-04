@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<ui:composition template="/templates/page-template.xhtml">
+	<ui:define name="title">Projekt02 - Wyniki Kredytu</ui:define>
+	<ui:define name="pageContent">
+		<p:panel header="Wyniki Obliczeń" styleClass="result-panel">
+			<p:messages />
+			<div class="result-container">
+				<p:outputPanel rendered="#{calcBB.result != null}">
+					<h3>Szczegóły Kredytu:</h3>
+					<div class="result-item">
+						<strong>Całkowita kwota do spłaty:</strong> 
+						<h:outputText value="#{calcBB.result}" styleClass="result-value">
+							<f:convertNumber type="currency" currencySymbol="zł" />
+						</h:outputText>
+					</div>
+					<div class="result-item">
+						<strong>Całkowite odsetki:</strong> 
+						<h:outputText value="#{calcBB.result - calcBB.kwota}" styleClass="profit-value">
+							<f:convertNumber type="currency" currencySymbol="zł" />
+						</h:outputText>
+					</div>
+				</p:outputPanel>
+			</div>
+			<p:separator />
+			<h:form>
+				<p:commandButton value="Nowe Obliczenia" action="index" 
+				               styleClass="custom-button" icon="pi pi-refresh" />
+			</h:form>
+		</p:panel>
+
+	</ui:define>
+
+</ui:composition>
+</html>
