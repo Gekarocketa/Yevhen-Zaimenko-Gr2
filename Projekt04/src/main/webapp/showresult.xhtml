@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<ui:composition template="/templates/page-template.xhtml">
+	<ui:define name="title">Projekt02 - Wyniki Kredytu</ui:define>
+	<ui:define name="pageContent">
+		<p:panel header="Wyniki Obliczeń" styleClass="result-panel">
+			<p:messages />
+			<div class="result-container">
+				<!-- Dane z obiektu przekazanego przez request -->
+				<p:outputPanel rendered="#{not empty requestScope.loan}">
+					<h3>Szczegóły Kredytu:</h3>
+					<div class="result-item">
+						<strong>Całkowita kwota do spłaty:</strong> 
+						<h:outputText value="#{requestScope.loan.result}" styleClass="result-value">
+							<f:convertNumber type="currency" currencySymbol="zł" />
+						</h:outputText>
+					</div>
+					<div class="result-item">
+						<strong>Całkowite odsetki:</strong> 
+						<h:outputText value="#{requestScope.loan.result - requestScope.loan.kwota}" styleClass="profit-value">
+							<f:convertNumber type="currency" currencySymbol="zł" />
+						</h:outputText>
+					</div>
+				</p:outputPanel>
+			</div>
+			<p:separator />
+			<!-- Kolekcja z sesji: historia obliczeń -->
+			<p:panel header="Historia (z sesji)">
+				<h:dataTable value="#{sessionScope.history}" var="h" rendered="#{not empty sessionScope.history}" border="1">
+					<h:column>
+						<f:facet name="header">Kwota</f:facet>
+						<h:outputText value="#{h.kwota}">
+							<f:convertNumber minFractionDigits="2" />
+						</h:outputText>
+					</h:column>
+					<h:column>
+						<f:facet name="header">Okres</f:facet>
+						<h:outputText value="#{h.okres}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">Procent</f:facet>
+						<h:outputText value="#{h.procent}">
+							<f:convertNumber minFractionDigits="1" />
+						</h:outputText>
+					</h:column>
+					<h:column>
+						<f:facet name="header">Wynik</f:facet>
+						<h:outputText value="#{h.result}">
+							<f:convertNumber type="currency" currencySymbol="zł" />
+						</h:outputText>
+					</h:column>
+				</h:dataTable>
+				<h:panelGroup rendered="#{empty sessionScope.history}">
+					<p>Brak danych w historii.</p>
+				</h:panelGroup>
+			</p:panel>
+			<p:separator />
+			<h:form>
+				<p:commandButton value="Nowe Obliczenia" action="index" 
+				               styleClass="custom-button" icon="pi pi-refresh" />
+			</h:form>
+		</p:panel>
+
+	</ui:define>
+
+</ui:composition>
+</html>

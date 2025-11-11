@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<ui:composition template="/templates/main-template.xhtml">
+
+	<ui:define name="title">
+		Projekt02 - Informacje o Kalkulatorze Kredytowym
+	</ui:define>
+
+	<ui:define name="content">
+		<p:panel header="Jak działa Kalkulator Kredytowy?" styleClass="info-panel">
+			<div class="info-content">
+				<h:graphicImage name="img/calculator.png" library="template" styleClass="info-image" />
+				
+				<h3>Opis funkcjonalności:</h3>
+				<p>Kalkulator oblicza całkowitą kwotę do spłaty kredytu przy założeniu kapitalizacji rocznej.</p>
+				<p>(Na tej stronie ustawiamy nagłówek odpowiedzi HTTP w akcji przejścia — prosta demonstracja.)</p>
+				
+				<h3>Wzór matematyczny:</h3>
+				<p><strong>Kwota końcowa = Kwota kredytu × (1 + stopa procentowa/100)^okres</strong></p>
+				
+				<h3>Przykład:</h3>
+				<ul>
+					<li>Kwota kredytu: 10,000 zł</li>
+					<li>Stopa procentowa: 5% rocznie</li>
+					<li>Okres: 10 lat</li>
+					<li><strong>Całkowita kwota do spłaty: 16,288.95 zł</strong></li>
+				</ul>
+				
+				<h3>Ograniczenia:</h3>
+				<ul>
+					<li>Maksymalna kwota kredytu: 1,000,000 zł</li>
+					<li>Maksymalny okres spłaty: 50 lat</li>
+					<li>Maksymalna stopa procentowa: 100%</li>
+				</ul>
+			</div>
+			
+			<p:separator />
+			<h:form>
+				<p:commandLink value="Powrót do kalkulatora" action="index" 
+				             styleClass="info-link" icon="pi pi-arrow-left" />
+			</h:form>
+		</p:panel>
+	</ui:define>
+
+</ui:composition>
+</html>

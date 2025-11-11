@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<ui:composition template="/templates/page-template.xhtml">
+
+	<ui:define name="pageContent">
+
+		<p:panel header="Kalkulator Kredytowy">
+
+			<p:messages id="msg" />
+
+			<h:form>
+				<h:panelGrid columns="2" cellpadding="5" styleClass="bottom-space">
+					<p:outputLabel for="kwota" value="Kwota kredytu:" />
+					<p:inputNumber id="kwota" value="#{calcBB.kwota}" minValue="0" decimalPlaces="2">
+						<f:validateDoubleRange minimum="0" maximum="20000"/>
+					</p:inputNumber>
+					<p:outputLabel for="okres" value="Okres spłaty (lata):" />
+					<p:inputNumber id="okres" value="#{calcBB.okres}" minValue="0" maxValue="100" decimalPlaces="0" />
+					<p:outputLabel for="procent" value="Stopa procentowa (%):" />
+					<p:inputNumber id="procent" value="#{calcBB.procent}" minValue="0" maxValue="100" decimalPlaces="1">
+						<f:validateDoubleRange minimum="0" maximum="100"/>
+					</p:inputNumber>
+					<p:commandButton value="Oblicz" action="#{calcBB.calc()}" update="msg" />
+				</h:panelGrid>
+				<p:commandLink value="Informacje" action="#{calcBB.info()}" />
+			</h:form>
+
+			<p:separator />
+
+			<!-- Sekcja GET: демонстрация передачи параметров методом GET -->
+			<h:panelGroup>
+				<p:panel header="GET – szybkie wypełnienie">
+					<p>Możesz wczytać przykładowe wartości z adresu URL (GET):</p>
+					<h:panelGrid columns="3" cellpadding="5">
+						<h:link value="Wczytaj GET (małe wartości)"
+							rendered="true"
+							outcome="index">
+							<f:param name="kwota" value="1000" />
+							<f:param name="okres" value="2" />
+							<f:param name="procent" value="5" />
+						</h:link>
+						<h:link value="Wczytaj GET (średnie wartości)"
+							outcome="index">
+							<f:param name="kwota" value="5000" />
+							<f:param name="okres" value="5" />
+							<f:param name="procent" value="7.5" />
+						</h:link>
+						<h:link value="Wczytaj GET (duże wartości)"
+							outcome="index">
+							<f:param name="kwota" value="12000" />
+							<f:param name="okres" value="10" />
+							<f:param name="procent" value="9.9" />
+						</h:link>
+					</h:panelGrid>
+					<h:form>
+						<p:commandButton value="Załaduj z GET" action="#{calcBB.loadFromGet()}" update="msg" process="@this" />
+					</h:form>
+				</p:panel>
+			</h:panelGroup>
+
+		</p:panel>
+
+	</ui:define>
+
+</ui:composition>
+</html>
