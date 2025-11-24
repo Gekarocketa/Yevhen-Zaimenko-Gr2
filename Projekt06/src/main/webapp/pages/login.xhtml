@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/templates/login-template.xhtml">
+
+	<ui:define name="content">
+
+		<p:panel header="Logowanie do Kalkulatora Kredytowego">
+			<h:form>
+				<h:panelGrid columns="2" cellpadding="5" styleClass="bottom-space">
+					<h:outputLabel for="login" value="Login:" />
+					<h:inputText id="login" value="#{loginBB.login}"
+						required="true"	requiredMessage="podaj login"/>
+					<h:outputLabel for="pass" value="Hasło:" />
+					<h:inputSecret id="pass" value="#{loginBB.pass}"
+					required="true"	requiredMessage="podaj hasło"/>
+				</h:panelGrid>
+			
+				<h:messages />
+			
+				<p:commandButton value="Zaloguj" action="#{loginBB.doLogin()}" 
+				                 styleClass="custom-button" icon="pi pi-sign-in"/>
+			</h:form>
+			
+			<p:separator />
+			
+			<div style="padding: 10px; background-color: #f0f0f0; border-radius: 5px; margin-top: 10px;">
+				<p><strong>Dane testowe:</strong></p>
+				<ul>
+					<li>user1 / password - rola: user</li>
+					<li>user2 / password - rola: manager</li>
+					<li>user3 / password - rola: admin</li>
+				</ul>
+			</div>
+		</p:panel>
+
+	</ui:define>
+
+</ui:composition>
+</html>
+
