@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <f:metadata>
+        <f:viewAction action="#{loanResultEditBB.onLoad()}" />
+    </f:metadata>
+
+    <ui:composition template="/templates/main-template.xhtml">
+        <ui:define name="title">Projekt02 - Edycja Wyniku Kredytowego</ui:define>
+        <ui:define name="content">
+
+            <p:panel toggleable="true" header="Edycja rekordu">
+
+                <h:form rendered="#{loanResultEditBB.loanResult != null}">
+                    <h:panelGrid columns="3" cellpadding="5">
+
+                        <h:outputLabel for="lr-kwota" value="Kwota:" />
+                        <p:inputNumber id="lr-kwota" value="#{loanResultEditBB.loanResult.kwota}"
+                                     minValue="0" decimalPlaces="2"
+                                     required="true" requiredMessage="Podaj kwotę" />
+                        <p:message for="lr-kwota" display="icon"/>
+
+                        <h:outputLabel for="lr-okres" value="Okres (lata):" />
+                        <p:inputNumber id="lr-okres" value="#{loanResultEditBB.loanResult.okres}"
+                                     minValue="0" maxValue="100" decimalPlaces="0"
+                                     required="true" requiredMessage="Podaj okres" />
+                        <p:message for="lr-okres" display="icon"/>
+
+                        <h:outputLabel for="lr-procent" value="Procent (%):" />
+                        <p:inputNumber id="lr-procent" value="#{loanResultEditBB.loanResult.procent}"
+                                     minValue="0" maxValue="100" decimalPlaces="1"
+                                     required="true" requiredMessage="Podaj procent" />
+                        <p:message for="lr-procent" display="icon"/>
+
+                        <h:outputLabel for="lr-result" value="Wynik:" />
+                        <p:inputNumber id="lr-result" value="#{loanResultEditBB.loanResult.result}"
+                                     minValue="0" decimalPlaces="2"
+                                     required="true" requiredMessage="Podaj wynik" />
+                        <p:message for="lr-result" display="icon"/>
+
+                    </h:panelGrid>
+
+                    <p:messages id="msgs" />
+
+                    <p:commandButton value="Zapisz" action="#{loanResultEditBB.saveData()}"
+                                     style="margin-right: 1em;" update="@form" />
+
+                    <p:button value="Anuluj" outcome="/pages/calc/loanResultList" />
+                </h:form>
+
+            </p:panel>
+
+        </ui:define>
+    </ui:composition>
+
+</html>
+
