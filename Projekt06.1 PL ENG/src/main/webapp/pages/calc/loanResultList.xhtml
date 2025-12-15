@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <ui:composition template="/templates/main-template.xhtml">
+        <ui:define name="title">Projekt02 - Lista Wyników Kredytowych</ui:define>
+        <ui:define name="content">
+
+            <p:panel header="Lista Wyników Kredytowych">
+
+                <p:panel header="Opcje wyszukiwania" toggleable="true" collapsed="true"
+                         style="margin-bottom: 1em;">
+                    <h:form>
+                        <h:panelGrid columns="3" cellpadding="5">
+                            <h:outputLabel value="Kwota min:" />
+                            <p:inputNumber value="#{loanResultListBB.kwotaMin}" minValue="0" decimalPlaces="2" />
+                            <h:outputLabel value="Kwota max:" />
+                            <p:inputNumber value="#{loanResultListBB.kwotaMax}" minValue="0" decimalPlaces="2" />
+                            <p:commandButton value="Szukaj" update="form-table" />
+                        </h:panelGrid>
+                    </h:form>
+                </p:panel>
+
+                <p:messages />
+
+                <h:form id="form-table" style="margin-bottom:1em;">
+
+                    <p:commandButton value="Dodaj nowy wynik" style="margin-bottom:1em;" 
+                                     action="#{loanResultListBB.newLoanResult()}"/>
+
+                    <p:dataTable value="#{loanResultListBB.list}" var="lr" paginator="true" rows="10">
+
+                        <p:column responsivePriority="5">
+                            <f:facet name="header">
+                                <h:outputText value="Kwota" />
+                            </f:facet>
+                            <h:outputText value="#{lr.kwota}">
+                                <f:convertNumber type="currency" currencySymbol="zł" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="Okres (lata)" />
+                            </f:facet>
+                            <h:outputText value="#{lr.okres}" />
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="Procent (%)" />
+                            </f:facet>
+                            <h:outputText value="#{lr.procent}">
+                                <f:convertNumber minFractionDigits="1" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="Wynik" />
+                            </f:facet>
+                            <h:outputText value="#{lr.result}">
+                                <f:convertNumber type="currency" currencySymbol="zł" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column responsivePriority="4">
+                            <f:facet name="header">
+                                <h:outputText value="Data utworzenia" />
+                            </f:facet>
+                            <h:outputText value="#{lr.createdAt}">
+                                <f:convertDateTime pattern="dd-MM-yyyy HH:mm" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="Opcje" />
+                            </f:facet>
+
+                            <p:commandButton value="Edytuj" style="margin-right: 0.5em"
+                                             action="#{loanResultListBB.editLoanResult(lr)}"/>
+
+                            <p:commandButton value="Usuń" style="margin-right: 0.5em"
+                                             action="#{loanResultListBB.deleteLoanResult(lr)}"
+                                             update="@form" />
+
+                        </p:column>
+
+                    </p:dataTable>
+                </h:form>
+
+            </p:panel>
+
+        </ui:define>
+    </ui:composition>
+
+</html>
+
