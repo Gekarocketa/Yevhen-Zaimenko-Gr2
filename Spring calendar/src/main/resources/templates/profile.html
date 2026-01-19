@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Profil Użytkownika</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: #4ae;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .profile-info h2 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+
+        .profile-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        .profile-section {
+            margin-bottom: 24px;
+        }
+
+        .profile-section h3 {
+            border-left: 4px solid #4eae6e;
+            padding-left: 12px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .info-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/nav :: nav}"></div>
+
+    <main class="main">
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar" th:text="${#strings.substring(user.name, 0, 1).toUpperCase()}">U</div>
+                <div class="profile-info">
+                    <h2 th:text="${user.name}">User Name</h2>
+                    <p th:text="${user.email}">user@example.com</p>
+                    <div style="margin-top: 8px;">
+                        <span th:each="role : ${user.roles}" th:text="${role.name}"
+                            style="background: #eee; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-right: 8px;">
+                            Role
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Informacje o koncie</h3>
+                <div class="info-group">
+                    <span class="info-label">ID użytkownika:</span>
+                    <span th:text="${user.id}">1</span>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Data rejestracji:</span>
+                    <span th:text="${#temporals.format(user.createdAt, 'dd-MM-yyyy HH:mm')}">2024-01-01</span>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Akcje</h3>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-danger">Wyloguj się</button>
+                    <!-- CSRF assumed enabled/handled globally or disabled -->
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

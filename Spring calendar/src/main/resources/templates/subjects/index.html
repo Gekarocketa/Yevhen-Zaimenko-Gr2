@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Zarządzanie Przedmiotami</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .subjects-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .subject-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .semester-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #f0f2f5;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/nav :: nav}"></div>
+
+    <main class="main">
+        <div class="subjects-container">
+            <div class="header-actions">
+                <h2>Przedmioty</h2>
+
+                <!-- Search Form -->
+                <form action="/subjects" method="get" style="display: flex; gap: 10px; align-items: center;">
+                    <div style="position: relative;">
+                        <input type="text" name="search" placeholder="Szukaj..." th:value="${param.search}"
+                            class="form-control" style="padding-left: 30px; border-radius: 20px;">
+                        <i class="fas fa-search" style="position: absolute; left: 10px; top: 10px; color: #999;"></i>
+                    </div>
+                    <!-- Preserve other active filters if any, though simplicity suggests search is primary -->
+                </form>
+
+                <button sec:authorize="hasAnyRole('TUTOR', 'ADMIN')" onclick="openAddModal()" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Dodaj Przedmiot
+                </button>
+            </div>
+
+            <div class="subject-grid">
+                <div th:each="subject : ${subjects}" class="subject-card">
+                    <span class="semester-badge" th:if="${subject.semester}" th:text="${subject.semester}">Semestr
+                        1</span>
+                    <h3 style="margin-top: 0; display: flex; align-items: center;">
+                        <span class="color-dot" th:style="'background:' + ${subject.color}"></span>
+                        <span th:text="${subject.name}">Matematyka</span>
+                    </h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 20px;" th:text="${subject.description}">
+                        Opis...</p>
+
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-sm btn-outline" th:data-id="${subject.id}" th:data-name="${subject.name}"
+                            th:data-color="${subject.color}" th:data-semester="${subject.semester}"
+                            th:data-description="${subject.description}" onclick="openEditModal(this)">
+                            Edytuj
+                        </button>
+                        <form th:action="@{/subjects/{id}(id=${subject.id})}" th:method="delete"
+                            style="display: inline;">
+                            <button type="submit" class="btn-sm btn-danger"
+                                onclick="return confirm('Czy na pewno chcesz usunąć ten przedmiot?')">Usuń</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${subjects.empty}" style="text-align: center; padding: 40px; color: #999;">
+                <p th:if="${param.search}">Nie znaleziono przedmiotów dla zapytania.</p>
+                <p th:unless="${param.search}">Brak przedmiotów. Dodaj pierwszy!</p>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${subjects.totalPages > 1}"
+                style="display: flex; justify-content: center; gap: 10px; margin-top: 30px;">
+                <a th:href="@{/subjects(page=${subjects.number - 1}, search=${param.search})}"
+                    th:if="${subjects.hasPrevious()}" class="btn-sm btn-outline">&laquo; Poprzednia</a>
+
+                <span style="display: flex; align-items: center; color: #666;">
+                    Strona <span th:text="${subjects.number + 1}" style="font-weight: bold; margin: 0 4px;"></span> z
+                    <span th:text="${subjects.totalPages}" style="margin-left: 4px;"></span>
+                </span>
+
+                <a th:href="@{/subjects(page=${subjects.number + 1}, search=${param.search})}"
+                    th:if="${subjects.hasNext()}" class="btn-sm btn-outline">Następna &raquo;</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for adding subjects -->
+    <div id="addSubjectModal" class="modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div style="background:#fff; width:90%; max-width:500px; margin:50px auto; padding:30px; border-radius:12px;">
+            <h3 id="modalTitle">Dodaj nowy przedmiot</h3>
+            <form id="subjectForm" th:action="@{/subjects}" method="post">
+                <input type="hidden" name="_method" id="formMethod" value="PUT" disabled>
+                <div class="form-group">
+                    <label>Nazwa</label>
+                    <input type="text" name="name" id="subjectName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Kolor</label>
+                    <input type="color" name="color" id="subjectColor" class="form-control" value="#4eae6e"
+                        style="height: 40px;">
+                </div>
+                <div class="form-group">
+                    <label>Semestr</label>
+                    <input type="text" name="semester" id="subjectSemester" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Opis</label>
+                    <textarea name="description" id="subjectDescription" class="form-control"></textarea>
+                </div>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(btn) {
+            document.getElementById('modalTitle').innerText = 'Edytuj przedmiot';
+            document.getElementById('subjectName').value = btn.getAttribute('data-name');
+            document.getElementById('subjectColor').value = btn.getAttribute('data-color');
+            document.getElementById('subjectSemester').value = btn.getAttribute('data-semester');
+            document.getElementById('subjectDescription').value = btn.getAttribute('data-description');
+
+            document.getElementById('formMethod').disabled = false;
+            document.getElementById('formMethod').value = 'PUT';
+
+            const id = btn.getAttribute('data-id');
+            const form = document.getElementById('subjectForm');
+            form.action = '/subjects/' + id;
+
+            document.getElementById('addSubjectModal').style.display = 'block';
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = 'Dodaj nowy przedmiot';
+            document.getElementById('subjectForm').reset();
+            document.getElementById('formMethod').disabled = true;
+            document.getElementById('subjectForm').action = '/subjects';
+            document.getElementById('addSubjectModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('addSubjectModal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,43 @@
+<nav th:fragment="nav" class="nav-bar"
+    style="background: #232323; color: #fff; border-radius: 0 0 16px 16px; box-shadow: 0 2px 12px #0005; padding: 0 32px; display: flex; align-items: center; height: 56px; position: relative;"
+    xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <div class="nav-logo" style="font-weight: bold; font-size: 1.2em; letter-spacing: 1px; margin-right: 32px;">
+        Kalendarz Studenta</div>
+    <div class="nav-links" style="display: flex; gap: 18px; align-items: center;">
+        <a th:href="@{/calendar}" class="nav__item"
+            style="color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.2s;">Strona
+            główna</a>
+
+        <div sec:authorize="isAuthenticated()" style="display: flex; gap: 18px; align-items: center;">
+            <form id="logout-form" th:action="@{/logout}" method="POST" style="display: none;">
+                <!-- CSRF assumed enabled or handled, technically disabled in config but good practice -->
+            </form>
+            <a href="#" class="nav__item"
+                style="color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px;"
+                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Wyloguj się</a>
+
+            <a th:href="@{/profile}"
+                style="position: absolute; right: 32px; top: 10px; color: #fff; opacity: 0.7; font-size: 1.1em; font-weight: 600; text-decoration: none; background: #232323; border-radius: 8px; padding: 6px 18px; transition: background 0.2s; box-shadow: 0 2px 8px #0002;">
+                <span sec:authentication="name">User</span>
+                <span style="font-size:0.95em; opacity:0.7;" sec:authentication="principal.authorities">
+                    (Role)
+                </span>
+            </a>
+
+            <button id="show-subjects-btn"
+                style="margin-left: 18px; background: #4eae6e; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-weight: 700; font-size: 1.1em; cursor: pointer; box-shadow: 0 2px 8px #0003;"
+                onclick="toggleSubjectsPanel()">PRZEDMIOTY</button>
+
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}"
+                style="margin-left: 18px; background: #a8323a; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-weight: 700; font-size: 1.1em; text-decoration: none; box-shadow: 0 2px 8px #0003;">Panel
+                Admina</a>
+        </div>
+
+        <div sec:authorize="!isAuthenticated()" style="display: flex; gap: 18px;">
+            <a th:href="@{/login}" class="nav__item"
+                style="color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px;">Zaloguj się</a>
+            <a th:href="@{/register}" class="nav__item"
+                style="color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px;">Zarejestruj się</a>
+        </div>
+    </div>
+</nav>

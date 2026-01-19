@@ -1,0 +1,457 @@
+<div th:fragment="calendar" class="calendar-wrapper" xmlns:th="http://www.thymeleaf.org">
+    <style>
+        .selected-day {
+            background-color: #e2e6ea !important;
+            /* Darker bg */
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            /* Pressed effect */
+            border: 2px solid #aec2d8 !important;
+            transform: translateY(1px);
+        }
+    </style>
+    <div class="calendar-box">
+        <div class="calendar">
+            <div class="calendar__monthnav"
+                style="display: flex; align-items: center; justify-content: center; margin-bottom: 18px; gap: 18px;">
+                <a th:href="@{/calendar(month=${month > 1 ? month - 1 : 12}, year=${month > 1 ? year : year - 1})}"
+                    class="calendar-nav-btn">&#8592;</a>
+                <span style="font-size: 1.5em; font-weight: 700;">
+                    <span th:text="${month}"></span> / <span th:text="${year}"></span>
+                    <!-- You might want to map month numbers to names in Java or JS or Thymeleaf utility -->
+                </span>
+                <a th:href="@{/calendar(month=${month < 12 ? month + 1 : 1}, year=${month < 12 ? year : year + 1})}"
+                    class="calendar-nav-btn">&#8594;</a>
+            </div>
+
+            <div class="calendar__header"
+                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 12px;">
+                <div style="text-align: center; font-weight: 600;">Pn</div>
+                <div style="text-align: center; font-weight: 600;">Wt</div>
+                <div style="text-align: center; font-weight: 600;">Śr</div>
+                <div style="text-align: center; font-weight: 600;">Cz</div>
+                <div style="text-align: center; font-weight: 600;">Pt</div>
+                <div style="text-align: center; font-weight: 600;">Sb</div>
+                <div style="text-align: center; font-weight: 600;">Nd</div>
+            </div>
+
+            <!-- We need to iterate weeks. The controller gave us a flat list of days.
+                 We need to chunk it in Thymeleaf? Or pre-chunk in Controller.
+                 Blade did the chunking.
+                 Let's fix Controller to return Weeks list of lists, or duplicate logic here.
+                 Thymeleaf isn't great at complex logic. 
+                 Better to use CSS Grid for days directly?
+                 Blade used: foreach($weeks).
+            -->
+
+            <div class="calendar__grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+                <!-- Calculate offset for the first day? 
+                      In Controller we return List<DayDTO>. 
+                      We should pad the list in Service or Controller to match grid.
+                      Let's check CalendarService.getDaysInMonth.
+                  -->
+                <th:block th:each="day : ${days}">
+                    <div th:if="${day == null}" class="calendar__day empty"></div>
+                    <div th:unless="${day == null}" class="calendar__day-wrapper" style="height: 100%;">
+                        <a th:href="@{/calendar(month=${month}, year=${year}, date=${day.date})}"
+                            class="calendar__day-link" th:data-date="${day.date}" style="height: 100%; display: block;">
+                            <div class="calendar__day"
+                                th:classappend="${(day.priority == 1 ? 'priority-low' : (day.priority == 2 ? 'priority-medium' : (day.priority == 3 ? 'priority-high' : ''))) + (day.date.toString().equals(selectedDate) ? ' selected-day' : '')}"
+                                style="min-height: 100px; position: relative; padding: 10px; border-radius: 8px;">
+
+                                <strong th:text="${day.date.dayOfMonth}">1</strong>
+
+                                <!-- Subject dots/squares -->
+                                <!-- We need to filter subjectDates for this day.
+                                       Thymeleaf collection filtering is tricky.
+                                       Better to add 'subjectDates' to DayDTO?
+                                       Or pass a map 'date -> list'.
+                                       Controller passed 'subjectDates' list.
+                                  -->
+                                <!-- Subject dots/squares (Reverted to squares at bottom) -->
+                                <div class="day-subjects"
+                                    style="display: flex; gap: 2px; position: absolute; bottom: 8px; right: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 100%;">
+                                    <span th:each="sd : ${subjectDates}" th:if="${sd.date.equals(day.date)}"
+                                        th:title="${sd.subject.name}"
+                                        th:style="'display:inline-block;width:12px;height:12px;border-radius:3px;background:' + ${sd.subject.color}">
+                                    </span>
+                                </div>
+
+                                <!-- Note indicator (Star if notes exist) -->
+                                <div th:if="${!day.notes.isEmpty()}"
+                                    style="position: absolute; top: 5px; right: 5px; color: #f39c12;"
+                                    title="Są notatki">
+                                    <i class="fas fa-star"></i>
+                                </div>
+
+                                <!-- Note preview text -->
+                                <div th:if="${!day.notes.isEmpty()}" class="note-preview"
+                                    th:data-note-id="${day.notes[0].id}"
+                                    th:style="'font-size: 0.7rem; position: absolute; top: 35px; left: 4px; width: 85%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ' + ${day.notes[0].user.hasRole('tutor') ? 'color: #8B0000; font-weight: bold;' : 'color: #555;'}">
+                                    <span th:text="${day.notes[0].content}">Note</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </th:block>
+            </div>
+
+            <script>
+                // ... (script content unchanged)
+            </script>
+        </div>
+
+        <!-- Right side panels -->
+        <div class="calendar-panels" style="display: flex; gap: 20px; margin-top: 20px;"
+            th:if="${selectedDate != null}">
+
+            <!-- Notes Panel -->
+            <div class="calendar-notes panel" style="flex: 1; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h3>Notatki <span th:text="${selectedDate}"></span></h3>
+
+                <!-- List notes -->
+                <div th:each="day : ${days}" th:if="${day != null and day.date.toString().equals(selectedDate)}">
+                    <div th:each="note : ${day.notes}" class="note-item" th:id="'note-' + ${note.id}"
+                        th:classappend="${note.user.hasRole('tutor') ? 'tutor-note' : ''}"
+                        th:style="'background: ' + ${note.user.hasRole('tutor') ? 'rgba(255,0,0,0.1)' : '#fff'} + '; padding: 10px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid ' + (note.priority == 3 ? '#dc3545' : (note.priority == 2 ? '#ffc107' : '#28a745'))">
+
+                        <div class="note-header"
+                            style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span th:text="${note.user.name}"
+                                style="font-weight: bold; font-size: 0.9em; color: #555;">User</span>
+
+                            <!-- Delete button: Only if OWNER -->
+                            <form th:if="${#authentication.principal.username == note.user.email}"
+                                th:action="@{/notes/{id}(id=${note.id})}" th:method="delete" style="display: inline;">
+                                <button type="submit" class="btn-sm btn-danger"
+                                    onclick="return confirm('Delete?')">×</button>
+                            </form>
+
+                            <!-- Toggle visibility button: If NOT owner and Note is Tutor -->
+                            <button
+                                th:if="${#authentication.principal.username != note.user.email and note.user.hasRole('tutor')}"
+                                class="btn-sm toggle-visibility-btn"
+                                style="background:none; border:none; cursor:pointer;" th:data-id="${note.id}"
+                                th:onclick="'toggleNoteVisibility(' + ${note.id} + ')'">
+                                <i class="fas fa-eye" style="color: #6c757d;"></i>
+                            </button>
+                        </div>
+                        <div th:text="${note.content}">Content</div>
+
+                        <!-- Edit Button (Only owner) -->
+                        <button th:if="${#authentication.principal.username == note.user.email}" class="btn-sm"
+                            style="font-size: 0.8em; color: #4ae; background: none; border: none; padding: 0; margin-top: 5px; cursor: pointer;"
+                            th:data-id="${note.id}" th:data-content="${note.content}"
+                            th:data-priority="${note.priority != null ? note.priority : 1}"
+                            onclick="editNote(this)">Edytuj</button>
+                    </div>
+                </div>
+
+                <!-- Add/Edit note form -->
+                <form id="noteForm" th:action="@{/notes}" method="post" style="margin-top: 15px;">
+                    <input type="hidden" name="date" th:value="${selectedDate}">
+                    <input type="hidden" name="_method" id="noteFormMethod" value="POST" disabled>
+                    <textarea name="content" id="noteContent" class="form-control" placeholder="Nowa notatka..."
+                        required></textarea>
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-top:5px;">
+                        <select name="priority" id="notePriority" class="form-control" style="width: 70%;">
+                            <option value="1">Niski</option>
+                            <option value="2">Średni</option>
+                            <option value="3">Wysoki</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary" id="noteSubmitBtn">Dodaj</button>
+                    </div>
+                    <button type="button" id="cancelEditNote"
+                        style="display:none; font-size:0.8em; background:none; border:none; color:#666; cursor:pointer; margin-top:5px;"
+                        onclick="resetNoteForm()">Anuluj edycję</button>
+                </form>
+            </div>
+
+            <!-- Schedule Panel -->
+            <div class="calendar-schedule panel"
+                style="flex: 1; padding: 20px; background: #f8f9fa; border-radius: 8px; display: flex; flex-direction: column;">
+                <h3>Plan zajęć</h3>
+                <div class="schedule-container"
+                    style="position: relative; flex-grow: 1; border: 1px solid #ddd; background: #fff; border-radius: 4px; padding-left: 50px; height: 720px; overflow-y: auto;">
+                    <!-- Time grid 08:00 - 20:00 (12 hours * 60px = 720px) -->
+                    <div th:each="i : ${#numbers.sequence(8, 19)}"
+                        th:style="'position: absolute; top: ' + ${(i - 8) * 60} + 'px; left: 0; width: 100%; height: 60px; border-bottom: 1px dotted #eee; pointer-events: none;'">
+                        <span th:text="${i} + ':00'"
+                            style="position: absolute; left: 5px; top: -10px; font-size: 0.75em; color: #999;"></span>
+                    </div>
+
+                    <!-- Items -->
+                    <div th:each="sd : ${subjectDates}" th:if="${sd.date.toString().equals(selectedDate)}"
+                        class="schedule-item-draggable" th:id="'sd-' + ${sd.id}" th:data-id="${sd.id}" draggable="true"
+                        th:style="'position: absolute; left: 55px; right: 10px; height: 90px; border-radius: 4px; padding: 5px; color: #fff; cursor: grab; background:' + ${sd.subject.color} + '; top:' + ${(sd.startTime.hour - 8) * 60 + sd.startTime.minute} + 'px;'">
+
+                        <div
+                            style="font-size: 0.9em; font-weight: bold; display: flex; justify-content: space-between;">
+                            <span th:text="${sd.subject.name}">Math</span>
+                            <form th:action="@{/subject-date/{id}(id=${sd.id})}" th:method="delete" style="margin: 0;">
+                                <button type="submit"
+                                    style="background:none; border:none; color:#fff; cursor:pointer; font-weight:bold;">×</button>
+                            </form>
+                        </div>
+                        <div style="font-size: 0.75em;"
+                            th:text="${sd.startTime} + ' - ' + ${sd.startTime.plusMinutes(90)}">08:00 - 09:30</div>
+                        <div style="font-size: 0.8em; margin-top: 4px; opacity: 0.9;"
+                            th:text="${sd.subject.description}">Desc</div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // Toggle Note Visibility Logic
+                document.addEventListener('DOMContentLoaded', function () {
+                    const hiddenNotes = JSON.parse(localStorage.getItem('hiddenNotes') || '[]');
+                    hiddenNotes.forEach(id => {
+                        // Hide in GRID preview
+                        const preview = document.querySelector(`.note-preview[data-note-id="${id}"]`);
+                        if (preview) preview.style.display = 'none';
+
+                        // Update icon to "Slash" (meaning it is currently hidden)
+                        const btn = document.querySelector(`.toggle-visibility-btn[data-id="${id}"] i`);
+                        if (btn) {
+                            btn.classList.remove('fa-eye');
+                            btn.classList.add('fa-eye-slash');
+                            btn.parentElement.title = "Pokaż notatkę";
+                        }
+                    });
+                });
+
+                function toggleNoteVisibility(id) {
+                    const hidden = JSON.parse(localStorage.getItem('hiddenNotes') || '[]');
+                    const index = hidden.indexOf(id);
+                    const isHidden = index !== -1;
+
+                    const preview = document.querySelector(`.note-preview[data-note-id="${id}"]`);
+                    const icon = document.querySelector(`.toggle-visibility-btn[data-id="${id}"] i`);
+
+                    if (isHidden) {
+                        // UNHIDE (Show)
+                        hidden.splice(index, 1);
+                        if (preview) preview.style.display = 'block';
+                        if (icon) {
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    } else {
+                        // HIDE
+                        hidden.push(id);
+                        if (preview) preview.style.display = 'none';
+                        if (icon) {
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        }
+                    }
+                    localStorage.setItem('hiddenNotes', JSON.stringify(hidden));
+                }
+
+                function editNote(btn) {
+                    const id = btn.getAttribute('data-id');
+                    const content = btn.getAttribute('data-content');
+                    const priority = btn.getAttribute('data-priority');
+
+                    document.getElementById('noteContent').value = content;
+                    document.getElementById('notePriority').value = priority;
+                    document.getElementById('noteSubmitBtn').innerText = 'Zapisz';
+
+                    const form = document.getElementById('noteForm');
+                    form.action = '/notes/' + id;
+                    document.getElementById('noteFormMethod').disabled = false;
+                    document.getElementById('noteFormMethod').value = 'PUT';
+
+                    document.getElementById('cancelEditNote').style.display = 'block';
+                }
+
+                function resetNoteForm() {
+                    document.getElementById('noteContent').value = '';
+                    document.getElementById('notePriority').value = '1';
+                    document.getElementById('noteSubmitBtn').innerText = 'Dodaj';
+
+                    const form = document.getElementById('noteForm');
+                    form.action = '/notes';
+                    document.getElementById('noteFormMethod').disabled = true;
+
+                    document.getElementById('cancelEditNote').style.display = 'none';
+                }
+
+                // Layout Logic to prevent overlap
+                function layoutSchedule() {
+                    const items = Array.from(document.querySelectorAll('.schedule-item-draggable')).map(el => {
+                        return {
+                            el: el,
+                            top: parseInt(el.style.top),
+                            bottom: parseInt(el.style.top) + parseInt(el.style.height || 90), // Default 90px if not set
+                            id: el.dataset.id
+                        };
+                    });
+
+                    if (items.length === 0) return;
+
+                    // Sort by start time
+                    items.sort((a, b) => a.top - b.top);
+
+                    // Group into clusters of overlapping events
+                    const clusters = [];
+                    if (items.length > 0) {
+                        let currentCluster = [items[0]];
+                        let clusterEnd = items[0].bottom;
+
+                        for (let i = 1; i < items.length; i++) {
+                            const item = items[i];
+                            if (item.top < clusterEnd) {
+                                // Overlaps with the current cluster
+                                currentCluster.push(item);
+                                if (item.bottom > clusterEnd) clusterEnd = item.bottom;
+                            } else {
+                                // New cluster
+                                clusters.push(currentCluster);
+                                currentCluster = [item];
+                                clusterEnd = item.bottom;
+                            }
+                        }
+                        clusters.push(currentCluster);
+                    }
+
+                    // Process each cluster
+                    clusters.forEach(cluster => {
+                        // Pack columns
+                        const columns = [];
+
+                        cluster.forEach(item => {
+                            let placed = false;
+                            for (let i = 0; i < columns.length; i++) {
+                                // Check if this column is free for this item
+                                // A column is free if the last item in it ends before this item starts
+                                const lastItem = columns[i][columns[i].length - 1];
+                                if (lastItem.bottom <= item.top) {
+                                    columns[i].push(item);
+                                    placed = true;
+                                    break;
+                                }
+                            }
+                            if (!placed) {
+                                columns.push([item]);
+                            }
+                        });
+
+                        const numCols = columns.length;
+                        const widthPercent = 95 / numCols; // 95% to leave some gap
+
+                        columns.forEach((col, colIndex) => {
+                            col.forEach(item => {
+                                item.el.style.width = `calc((100% - 65px) / ${numCols})`; // Distribute avail width
+                                item.el.style.left = `calc(55px + ((100% - 65px) / ${numCols}) * ${colIndex})`;
+                                // Add small border or gap
+                                item.el.style.boxSizing = "border-box";
+                            });
+                        });
+                    });
+                }
+
+                // Drag and Drop Logic
+                const container = document.querySelector('.schedule-container');
+                let draggedItem = null;
+
+                // Run layout on load
+                document.addEventListener('DOMContentLoaded', layoutSchedule);
+
+                document.querySelectorAll('.schedule-item-draggable').forEach(item => {
+                    item.addEventListener('dragstart', function (e) {
+                        draggedItem = this;
+                        e.dataTransfer.setData('text/plain', this.dataset.id);
+                        setTimeout(() => this.style.opacity = '0.5', 0);
+                    });
+
+                    item.addEventListener('dragend', function () {
+                        this.style.opacity = '1';
+                        draggedItem = null;
+                    });
+                });
+
+                if (container) {
+                    container.addEventListener('dragover', function (e) {
+                        e.preventDefault(); // allow drop
+                    });
+
+                    container.addEventListener('drop', function (e) {
+                        e.preventDefault();
+                        if (!draggedItem) return;
+
+                        // Calculate new time based on Y position
+                        const rect = container.getBoundingClientRect();
+                        const offsetY = e.clientY - rect.top + container.scrollTop; // simplified
+
+                        // Snap to 15 mins (15px because 60px = 60mins? No, 60px = 60mins, so 15px = 15mins)
+                        // Actually let's assume 60px = 1h. 15min = 15px.
+                        const rawMinutes = Math.floor(offsetY);
+                        const snappedMinutes = Math.round(rawMinutes / 15) * 15;
+
+                        // Convert to HH:mm
+                        const startHour = 8;
+                        const totalMinutes = startHour * 60 + snappedMinutes;
+                        const hour = Math.floor(totalMinutes / 60);
+                        const minute = totalMinutes % 60;
+
+                        if (hour < 8 || hour >= 20) return; // bounds
+
+                        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+
+                        // Update UI immediately for feedback
+                        draggedItem.style.top = snappedMinutes + 'px';
+
+                        // Update the time text inside the element
+                        const timeDiv = draggedItem.querySelector('div:nth-child(2)'); // The div with 08:00 - 09:30
+                        if (timeDiv) {
+                            // Calculate end time (start + 90 mins)
+                            const endTotalMinutes = totalMinutes + 90;
+                            const endHour = Math.floor(endTotalMinutes / 60);
+                            const endMinute = endTotalMinutes % 60;
+                            const endTimeString = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+                            timeDiv.innerText = `${timeString} - ${endTimeString}`;
+                        }
+
+                        // Send API request
+                        const id = draggedItem.dataset.id;
+                        fetch(`/subject-date/${id}/move`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : ''
+                            },
+                            body: `time=${timeString}`
+                        }).then(res => {
+                            if (res.ok) window.location.reload();
+                        });
+                    });
+                }
+
+                // Calendar day click listener
+                document.querySelectorAll('.calendar__day-wrapper').forEach(wrapper => {
+                    wrapper.addEventListener('click', function (e) {
+                        // If selectedSubjectId is null, do nothing (let link work)
+                        if (typeof window.selectedSubjectId !== 'undefined' && window.selectedSubjectId !== null) {
+                            e.preventDefault(); // Stop navigation
+                            const date = this.querySelector('.calendar__day-link').getAttribute('data-date');
+
+                            // Komunikacja asynchroniczna Ajax (AJAX) - (Асинхронный запрос)
+                            // Send POST request
+                            fetch('/add-subject-to-day', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    // Add CSRF token if enabled
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : ''
+                                },
+                                body: `date=${date}&subjectId=${window.selectedSubjectId}`
+                            }).then(res => {
+                                if (res.ok) window.location.reload();
+                            });
+                        }
+                    });
+                });
+            </script>
+        </div>
+    </div>
+</div>

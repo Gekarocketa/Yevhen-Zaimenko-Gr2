@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admina - Użytkownicy</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <meta name="csrf-token" th:if="${_csrf}" th:content="${_csrf.token}">
+</head>
+
+<body>
+    <div th:replace="~{fragments/nav :: nav}"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main">
+        <div
+            style="max-width: 1000px; margin: 40px auto; background: #232323; color: #fff; border-radius: 16px; box-shadow: 0 2px 16px #0005; padding: 32px;">
+            <h2 style="text-align: center; margin-bottom: 24px;">Zarządzanie Użytkownikami</h2>
+
+            <div th:if="${param.success}" class="alert alert-success"
+                style="background: #e6ffe6; color: #218838; border: 1px solid #b2f2b2;">
+                Operacja zakończona sukcesem.
+            </div>
+
+            <!-- Filters -->
+            <form action="#" th:action="@{/admin/users}" method="get"
+                style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" name="search" th:value="${param.search}" placeholder="Szukaj po nazwie lub email..."
+                    style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #2a2a2a; color: #fff; flex: 1;">
+                <select name="role"
+                    style="padding: 8px; border-radius: 4px; border: 1px solid #444; background: #2a2a2a; color: #fff;">
+                    <option value="">Wszystkie role</option>
+                    <option th:each="r : ${roles}" th:value="${r.name}" th:text="${r.name}"
+                        th:selected="${param.role != null && param.role[0] == r.name}"></option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">Szukaj</button>
+            </form>
+
+            <div style="text-align: right; margin-bottom: 18px;">
+                <a th:href="@{/admin/users/create}"
+                    style="background: #4eae6e; color: #fff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 600;">Dodaj
+                    Użytkownika</a>
+            </div>
+
+            <div id="users-table">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #282828;">
+                            <th style="padding: 8px; text-align: left;">ID</th>
+                            <th style="padding: 8px; text-align: left;">Nazwa</th>
+                            <th style="padding: 8px; text-align: left;">Email</th>
+                            <th style="padding: 8px; text-align: left;">Role</th>
+                            <th style="padding: 8px; text-align: left;">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users}" style="border-bottom: 1px solid #333;">
+                            <td style="padding: 8px;" th:text="${user.id}">1</td>
+                            <td style="padding: 8px;" th:text="${user.name}">Name</td>
+                            <td style="padding: 8px;" th:text="${user.email}">Email</td>
+                            <td style="padding: 8px;">
+                                <span th:each="role : ${user.roles}" th:text="${role.name}"
+                                    style="background: #555; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 4px;">Role</span>
+                            </td>
+                            <td style="padding: 8px; display: flex; flex-direction: column; gap: 5px;">
+                                <a th:href="@{/admin/users/{id}(id=${user.id})}"
+                                    style="color: #e2c96a; font-weight: 600;">Edytuj</a>
+                                <!-- My route was update with PUT, but edit page is usually GET .../{id}/edit -->
+                                <!-- Wait, Controller has @PutMapping("/{id}") for update. 
+                                     I need a GET for Edit page. 
+                                     Let's check AdminController. It DOESN'T have an Edit page endpoint?
+                                     I missed `edit` method? 
+                                     I implemented 'index', 'store' (post), 'update' (put), 'destroy' (delete).
+                                     I MISSED `edit` (get) and `create` (get) in AdminController!
+                                     I implemented 'store' which is POST.
+                                     I need `create()` returning view, and `edit()` returning view.
+                                 -->
+                                <form th:action="@{/admin/users/{id}/reset-password(id=${user.id})}" method="post"
+                                    onsubmit="return confirm('Reset password?')">
+                                    <button type="submit"
+                                        style="background:none; border:none; color:#bdbdbd; cursor:pointer; font-weight: 600; padding:0;">Resetuj
+                                        Hasło</button>
+                                </form>
+                                <form th:action="@{/admin/users/{id}(id=${user.id})}" th:method="delete"
+                                    onsubmit="return confirm('Are you sure?')">
+                                    <button type="submit"
+                                        style="background:none; border:none; color:#c05a5a; cursor:pointer; font-weight: 600; padding:0;">Usuń</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${users.empty}">
+                            <td colspan="5" style="text-align:center; color:#bdbdbd; padding: 20px;">Brak użytkowników
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="pagination" th:if="${users.totalPages > 1}"
+                    style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                    <a th:if="${users.hasPrevious()}"
+                        th:href="@{/admin/users(page=${users.number - 1}, search=${param.search}, role=${param.role})}"
+                        style="color: #fff;">&lt; Poprzednia</a>
+                    <span th:text="${users.number + 1} + ' / ' + ${users.totalPages}">1 / 5</span>
+                    <a th:if="${users.hasNext()}"
+                        th:href="@{/admin/users(page=${users.number + 1}, search=${param.search}, role=${param.role})}"
+                        style="color: #fff;">Następna &gt;</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
